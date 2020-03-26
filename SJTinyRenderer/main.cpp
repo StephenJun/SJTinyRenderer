@@ -1,6 +1,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+//C++:类似C#的namespace，使用ifndef定义namespace,所有include的头文件都要在include文件夹下
+#include <SHADER/Shader.h>
+
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -12,16 +15,20 @@ const unsigned int SCR_HEIGHT = 600;
 //一个基础的GLSL顶点着色器的源代码
 const char* vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
+"layout (location = 1) in vec3 aColor;\n"
+"out vec3 ourColor;\n"
 "void main()\n"
 "{\n"
 "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"   ourColor = aColor;\n"
 "}\0";
 //一个基础的GLSL片元着色器的源代码
 const char* fragmentShaderSource = "#version 330 core\n"
 "out vec4 FragColor;\n"
+"in vec4 ourColor;\n"
 "void main()\n"
 "{\n"
-"   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+"   FragColor = ourColor;\n"
 "}\n\0";
 
 int main()
@@ -57,6 +64,7 @@ int main()
         return -1;
     }
 
+    /*
     //创建并且编译shader程序
     //----------------
     //顶点着色器
@@ -98,13 +106,18 @@ int main()
     //删除shader的目的是释放内存？
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+    */
+
+    //使用自定义的shader类创建自己的shader
+    //----------------
+    Shader ourShader("basicShader.vs", "basicShader.fs");
 
     //配置顶点数据（和缓存）和配置顶点属性
     //------------------------------------
     float vertices[] = {
-         -0.5f, -0.5f, 0.0f, // left  
-         0.5f, -0.5f, 0.0f, // right 
-         0.0f,  0.5f, 0.0f  // top   
+         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // 右下
+        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // 左下
+         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // 顶部 
     };//此处坐标都是标准化设备坐标，凡是经过了顶点着色器处理过的，应该就是NDC了
 
     unsigned int VBO, VAO;
@@ -122,15 +135,21 @@ int main()
     //GL_STREAM_DRAW ：数据每次绘制时都会改变。
 
     //使用glVertexAttribPointer函数告诉OpenGL该如何解析顶点数据（应用到逐个顶点属性上）
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    //----------------
+    //位置属性
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    //颜色属性
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
 
     //注意，这是允许的，对glVertexAttribPointer的调用将VBO注册为顶点属性的绑定顶点缓冲区对象，
     //这样之后我们可以安全地解除绑定
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
     //可以在以后解除绑定VAO，这样其他VAO调用就不会意外地修改这个VAO，但这种情况很少发生。
     //修改其他VAOs无论如何都需要调用glBindVertexArray，所以我们通常不会在没有直接必要时解除VAOs（或VBOs）的绑定。
-    glBindVertexArray(0);
+    //glBindVertexArray(0);
 
     //取消注释下列调用可以在线框模式下绘制。
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -148,8 +167,17 @@ int main()
         glClearColor(0.2f, 0.5f, 0.6f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        //绘制三角形
-        glUseProgram(shaderProgram);
+        //绘制三角形-激活着色器
+        //glUseProgram(shaderProgram);
+        ourShader.use();
+
+        //更新uniformyanse
+        //float timeValue = glfwGetTime();
+        //float greenValue = sin(timeValue) / 2.0f + 0.5f;
+        //int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+        //glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
+
         //因为我们只有一个VAO，所以没有必要每次都绑定它，但是我们这样做是为了让事情更有条理
         glBindVertexArray(VAO);
         //第二个参数指定了顶点数组的起始索引。
