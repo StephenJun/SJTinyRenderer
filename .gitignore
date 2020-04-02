@@ -24,13 +24,14 @@
 *.lai
 *.la
 *.a
+*.vcxproj
 
 # Executables
 *.exe
 *.out
 *.app
 /.vs/*
-/Debug/*
+SJTinyRenderer/Debug/*
 /.git/*
 /.idea/*
 /.vs/*
@@ -39,3 +40,4 @@
 /Temp/*
 /*.csproj
 /*.sln
+*.tlog
