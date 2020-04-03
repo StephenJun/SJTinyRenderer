@@ -50,6 +50,10 @@ int main()
         return -1;
     }
 
+    //配置全局的OpenGL状态
+    // -----------------------------
+    glEnable(GL_DEPTH_TEST); //开启深度测试
+
     /*
     //创建并且编译shader程序
     //----------------
@@ -100,13 +104,71 @@ int main()
 
     //配置顶点数据（和缓存）和配置顶点属性
     //------------------------------------
+    //float vertices[] = {
+    //    //顶点位置             //纹理uv  
+    //     0.5f,  0.5f, 0.0f,   1.0f, 1.0f,    // 右上
+    //     0.5f, -0.5f, 0.0f,   1.0f, 0.0f,    // 右下
+    //     -0.5f, -0.5f, 0.0f,  0.0f, 0.0f,    // 左下
+    //     -0.5f,  0.5f, 0.0f,  0.0f, 1.0f     // 左上
+    //};//此处坐标都是标准化设备坐标，凡是经过了顶点着色器处理过的，应该就是NDC了
+
     float vertices[] = {
-        //顶点位置             //纹理uv  
-         0.5f,  0.5f, 0.0f,   1.0f, 1.0f,    // 右上
-         0.5f, -0.5f, 0.0f,   1.0f, 0.0f,    // 右下
-         -0.5f, -0.5f, 0.0f,  0.0f, 0.0f,    // 左下
-         -0.5f,  0.5f, 0.0f,  0.0f, 1.0f     // 左上
-    };//此处坐标都是标准化设备坐标，凡是经过了顶点着色器处理过的，应该就是NDC了
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    };
+
+    //十个不同的cube在世界中的空间
+    glm::vec3 cubePositions[] = {
+        glm::vec3(0.0f,  0.0f,  0.0f),
+        glm::vec3(2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f,  2.0f, -2.5f),
+        glm::vec3(1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
 
     //三角形索引
     unsigned int indices[] = {
@@ -231,7 +293,7 @@ int main()
         //渲染
         //--------
         glClearColor(0.2f, 0.5f, 0.6f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //清除深度缓冲
 
         //绑定纹理
         glActiveTexture(GL_TEXTURE0);
@@ -246,7 +308,7 @@ int main()
         glm::mat4 model = glm::mat4(1.0f); //确保矩阵被初始化为单位矩阵。
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f)); //绕竖直向上旋转55度
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(-55.0f), glm::vec3(0.5f, 1.0f, 0.0f)); //绕竖直向上旋转55度
         view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
         projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH/(SCR_HEIGHT),0.1f, 100.0f);
         // 检索uniform值ID
@@ -271,9 +333,21 @@ int main()
 
         //因为我们只有一个VAO，所以没有必要每次都绑定它，但是我们这样做是为了让事情更有条理
         glBindVertexArray(VAO);
+        for (unsigned int i = 0; i < 10; i++)
+        {
+            // calculate the model matrix for each object and pass it to shader before drawing
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            float angle = 20.0f * (i + 1);
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            ourShader.setMat4("model", model);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
         //第二个参数指定了顶点数组的起始索引。
         //glDrawArrays(GL_TRIANGLES, 0, 3);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        //glDrawArrays(GL_TRIANGLES, 0, 36);
         // 就是说假如我们一帧内需要绘制多个VAO，就需要对每个VAO在绘制时绑定，结束时解除绑定？
         // glBindVertexArray(0); 
 
