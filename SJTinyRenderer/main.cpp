@@ -96,7 +96,7 @@ int main()
 
     //使用自定义的shader类创建自己的shader
     //----------------
-    Shader ourShader("basicShader.vs", "basicShader.fs");
+    Shader ourShader("shaders/CoordinateSystems/basicShader.vs", "shaders/CoordinateSystems/basicShader.fs");
 
     //配置顶点数据（和缓存）和配置顶点属性
     //------------------------------------
@@ -239,16 +239,28 @@ int main()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
 
-        // create transformations
-        glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-
         //绘制三角形-激活着色器
-        //glUseProgram(shaderProgram);
         ourShader.use();
-        unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
+        //创建从模型空间到世界空间，再到视口空间，再到裁剪空间的变换矩阵，
+        glm::mat4 model = glm::mat4(1.0f); //确保矩阵被初始化为单位矩阵。
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 projection = glm::mat4(1.0f);
+        model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f)); //绕竖直向上旋转55度
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH/(SCR_HEIGHT),0.1f, 100.0f);
+        // 检索uniform值ID
+        unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
+        unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
+
+        //将矩阵参数传递给着色器（有以下三种不同的方法）
+        glUniformMatrix4fv(modelLoc, 1 ,GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
+        ourShader.setMat4("projection", projection);
+        //第一个参数你现在应该很熟悉了，它是uniform的位置值。
+        //第二个参数告诉OpenGL我们将要发送多少个矩阵，这里是1。
+        //第三个参数询问我们我们是否希望对我们的矩阵进行置换(Transpose)，也就是说交换我们矩阵的行和列。OpenGL开发者通常使用一种内部矩阵布局，叫做列主序(Column - major Ordering)布局。GLM的默认布局就是列主序，所以并不需要置换矩阵，我们填GL_FALSE。
+        //最后一个参数是真正的矩阵数据，但是GLM并不是把它们的矩阵储存为OpenGL所希望接受的那种，因此我们要先用GLM的自带的函数value_ptr来变换这些数据。
 
         //更新uniformyanse
         //float timeValue = glfwGetTime();
