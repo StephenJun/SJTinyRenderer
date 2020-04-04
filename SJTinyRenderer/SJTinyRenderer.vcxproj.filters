@@ -31,10 +31,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\SHADER\Shader.h">
+    <ClInclude Include="..\include\sjcustom\camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\sjcustom\camera.h">
+    <ClInclude Include="..\include\sjcustom\Shader.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

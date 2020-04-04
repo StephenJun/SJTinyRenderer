@@ -12,7 +12,9 @@ enum Camera_Movement {
     FORWARD,
     BACKWARD,
     LEFT,
-    RIGHT
+    RIGHT,
+    UP,
+    DOWN
 };
 
 // 初始的相机参数
@@ -79,6 +81,10 @@ public:
             Position -= Right * velocity;
         if (direction == Camera_Movement::RIGHT)
             Position += Right * velocity;
+        if (direction == Camera_Movement::UP)
+            Position += WorldUp * velocity;
+        if (direction == Camera_Movement::DOWN)
+            Position -= WorldUp * velocity;
     }
 
     // 处理从鼠标输入系统接收的输入。在x和y方向都需要偏移值。
