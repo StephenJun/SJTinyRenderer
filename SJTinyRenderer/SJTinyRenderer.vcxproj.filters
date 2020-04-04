@@ -34,7 +34,7 @@
     <ClInclude Include="..\include\SHADER\Shader.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="camera.h">
+    <ClInclude Include="..\include\sjcustom\camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
