@@ -1,21 +1,34 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 //C++:类似C#的namespace，使用ifndef定义namespace,所有include的头文件都要在include文件夹下
-#include <SHADER/Shader.h>
+#include <sjcustom/Shader.h>
+#include <sjcustom/camera.h>
 
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+
+//相机设置
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+//时间设置
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
 int main()
 {
@@ -282,10 +295,19 @@ int main()
     //取消注释下列调用可以在线框模式下绘制。
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     
+    // pass projection matrix to shader (as projection matrix rarely changes there's no need to do this per frame)
+    // --------------------------------------------------------------------------------------------
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    ourShader.setMat4("projection", projection);
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
     {
+        //每帧计算时间间隔
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         // input
         // -----
         processInput(window);
@@ -304,21 +326,31 @@ int main()
         //绘制三角形-激活着色器
         ourShader.use();
 
-        //创建从模型空间到世界空间，再到视口空间，再到裁剪空间的变换矩阵，
-        glm::mat4 model = glm::mat4(1.0f); //确保矩阵被初始化为单位矩阵。
+        //摄像机视口变换矩阵
         glm::mat4 view = glm::mat4(1.0f);
-        glm::mat4 projection = glm::mat4(1.0f);
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(-55.0f), glm::vec3(0.5f, 1.0f, 0.0f)); //绕竖直向上旋转55度
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-        projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH/(SCR_HEIGHT),0.1f, 100.0f);
+        float radius = 10.0f;
+        float camX = sin(glfwGetTime()) * radius;
+        float camZ = cos(glfwGetTime()) * radius;
+        view = glm::lookAt(cameraPos, //相机位置
+            cameraPos + cameraFront, //目标位置
+            cameraUp); //世界上方向位置
+        ourShader.setMat4("view", view);
+
+        //创建从模型空间到世界空间，再到视口空间，再到裁剪空间的变换矩阵，
+        //glm::mat4 model = glm::mat4(1.0f); //确保矩阵被初始化为单位矩阵。
+        //glm::mat4 view = glm::mat4(1.0f);
+        //glm::mat4 projection = glm::mat4(1.0f);
+        // model = glm::rotate(model, (float)glfwGetTime() * glm::radians(-55.0f), glm::vec3(0.5f, 1.0f, 0.0f)); //绕竖直向上旋转55度
+        //view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
         // 检索uniform值ID
-        unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-        unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
+        //unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
+        //unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
 
         //将矩阵参数传递给着色器（有以下三种不同的方法）
-        glUniformMatrix4fv(modelLoc, 1 ,GL_FALSE, glm::value_ptr(model));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
-        ourShader.setMat4("projection", projection);
+        //glUniformMatrix4fv(modelLoc, 1 ,GL_FALSE, glm::value_ptr(model));
+        //glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
+        //ourShader.setMat4("projection", projection);
         //第一个参数你现在应该很熟悉了，它是uniform的位置值。
         //第二个参数告诉OpenGL我们将要发送多少个矩阵，这里是1。
         //第三个参数询问我们我们是否希望对我们的矩阵进行置换(Transpose)，也就是说交换我们矩阵的行和列。OpenGL开发者通常使用一种内部矩阵布局，叫做列主序(Column - major Ordering)布局。GLM的默认布局就是列主序，所以并不需要置换矩阵，我们填GL_FALSE。
@@ -338,7 +370,7 @@ int main()
             // calculate the model matrix for each object and pass it to shader before drawing
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * (i + 1);
+            float angle = 20.0f * i;
             model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             ourShader.setMat4("model", model);
 
@@ -361,7 +393,7 @@ int main()
     // ------------------------------------------------------------------------
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+    //glDeleteBuffers(1, &EBO);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
@@ -375,6 +407,16 @@ void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    float cameraSpeed = 2.5 * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

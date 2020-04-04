@@ -1,3 +1,7 @@
 ﻿  main.cpp
-F:\ProjectsForLearning\SJTinyRenderer\include\SHADER\Shader.h(43,41): warning C4101: “e”: 未引用的局部变量
+F:\ProjectsForLearning\SJTinyRenderer\include\sjcustom\Shader.h(43,41): warning C4101: “e”: 未引用的局部变量
+F:\ProjectsForLearning\SJTinyRenderer\SJTinyRenderer\main.cpp(307,28): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+F:\ProjectsForLearning\SJTinyRenderer\SJTinyRenderer\main.cpp(332,20): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+F:\ProjectsForLearning\SJTinyRenderer\SJTinyRenderer\main.cpp(333,20): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+F:\ProjectsForLearning\SJTinyRenderer\SJTinyRenderer\main.cpp(411,23): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
   SJTinyRenderer.vcxproj -> F:\ProjectsForLearning\SJTinyRenderer\Debug\SJTinyRenderer.exe
