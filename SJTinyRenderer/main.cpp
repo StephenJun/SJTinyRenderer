@@ -16,6 +16,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
+unsigned int loadTexture(const char* path);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -75,8 +76,8 @@ int main()
 
     //使用自定义的shader类创建自己的shader
     //----------------
-    Shader lampShader("shaders/material/lamp.vs", "shaders/material/lamp.fs");
-    Shader lightingShader("shaders/material/basicShader.vs", "shaders/material/basicShader.fs");
+    Shader lampShader("shaders/lightmap/lamp.vs", "shaders/lightmap/lamp.fs");
+    Shader lightingShader("shaders/lightmap/basicShader.vs", "shaders/lightmap/basicShader.fs");
 
     //配置顶点数据（和缓存）和配置顶点属性
     //------------------------------------
@@ -89,48 +90,49 @@ int main()
     //};//此处坐标都是标准化设备坐标，凡是经过了顶点着色器处理过的，应该就是NDC了
 
     float vertices[] = {
-        //顶点位置            //法向量
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        //顶点位置            //法向量              //uv坐标
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
+
     };
 
 
@@ -151,12 +153,14 @@ int main()
     //使用glVertexAttribPointer函数告诉OpenGL该如何解析顶点数据（应用到逐个顶点属性上）
     //----------------
     //位置属性
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    //纹理属性
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    //法线属性
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
+    //纹理属性
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
     //第一个参数指定我们要配置的顶点属性。还记得我们在顶点着色器中使用layout(location = 0)定义了position顶点属性的位置值(Location)吗？它可以把顶点属性的位置值设置为0。因为我们希望把数据传递到这一个顶点属性中，所以这里我们传入0。
     //第二个参数指定顶点属性的大小。顶点属性是一个vec3，它由3个值组成，所以大小是3。
     //第三个参数指定数据的类型，这里是GL_FLOAT(GLSL中vec * 都是由浮点数值组成的)。
@@ -223,18 +227,21 @@ int main()
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     // note that we update the lamp's position attribute's stride to reflect the updated buffer data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    // 加载纹理（我们现在使用一个实用函数来保持代码的更有组织性
+    // -----------------------------------------------------------------------------
+    unsigned int diffuseMap = loadTexture("resources/textures/container2.png");
+    unsigned int specularMap = loadTexture("resources/textures/container2_specular.png");
+    unsigned int emissionMap = loadTexture("resources/textures/matrix.jpg");
 
     //告诉opengl它属于哪个纹理单元（只需要做一次）
     // -------------------------------------------------------------------------------------------
-    lampShader.use(); // don't forget to activate/use the shader before setting uniforms!
-    // either set it manually like so:
-    //glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
-    // or set it via the texture class
-    //ourShader.setInt("texture1", 0);
-    //ourShader.setInt("texture2", 1);
+    lightingShader.use(); // don't forget to activate/use the shader before setting uniforms!
+    lightingShader.setInt("material.diffuse", 0);
+    lightingShader.setInt("material.specular", 1);
+    lightingShader.setInt("material.emission", 2);
 
     //注意，这是允许的，对glVertexAttribPointer的调用将VBO注册为顶点属性的绑定顶点缓冲区对象，
     //这样之后我们可以安全地解除绑定
@@ -270,22 +277,13 @@ int main()
         lightingShader.setVec3("viewPos", camera.Position);
 
         //光源属性设置
-        glm::vec3 lightColor;
-        lightColor.x = sin(glfwGetTime() * 2.0f);
-        lightColor.y = sin(glfwGetTime() * 0.7f);
-        lightColor.z = sin(glfwGetTime() * 1.3f);
-        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
-        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
-        lightingShader.setVec3("light.ambient", ambientColor);
-        lightingShader.setVec3("light.diffuse", diffuseColor);
+        lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+        lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
         lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
-        //材质属性设置
-        lightingShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-        lightingShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
-        lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f); // specular lighting doesn't have full effect on this object's material
-        lightingShader.setFloat("material.shininess", 32.0f);
 
+        //材质属性设置
+        lightingShader.setFloat("material.shininess", 64.0f);
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -296,6 +294,16 @@ int main()
         // world transformation
         glm::mat4 model = glm::mat4(1.0f);
         lightingShader.setMat4("model", model);
+
+        //绑定漫反射贴图
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        //绑定高光贴图
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularMap);
+        //绑定自发光贴图
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, emissionMap);
 
         // 绘制被光照cube
         glBindVertexArray(cubeVAO);
@@ -329,6 +337,7 @@ int main()
     //可选项：当所有资源超出其用途时取消分配：
     // ------------------------------------------------------------------------
     glDeleteVertexArrays(1, &cubeVAO);
+    glDeleteVertexArrays(1, &lightVAO);
     glDeleteBuffers(1, &VBO);
     //glDeleteBuffers(1, &EBO);
 
@@ -393,4 +402,48 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(yoffset);
+}
+
+//从文件夹中加载纹理贴图的实用方法。
+//-----------------------------
+unsigned int loadTexture(char const* path) {
+
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    int width, height, nrComponents;
+    unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
+
+    if (data)
+    {
+        GLenum format;
+        if (nrComponents == 1)
+            format = GL_RED;
+        else if (nrComponents == 3)
+            format = GL_RGB;
+        else if (nrComponents == 4)
+            format = GL_RGBA;
+
+        //加载并创建贴图
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        //生成多级渐远贴图
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        //纹理环绕方式
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        //纹理过滤方式
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+        stbi_image_free(data);
+    }
+
+    return textureID;
 }
