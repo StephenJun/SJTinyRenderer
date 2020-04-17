@@ -1,21 +1,2 @@
-﻿  main.cpp
-F:\ProjectsForLearning\SJTinyRenderer\include\sjcustom\Shader.h(43,41): warning C4101: “e”: 未引用的局部变量
-F:\ProjectsForLearning\SJTinyRenderer\SJTinyRenderer\main.cpp(254,28): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-F:\ProjectsForLearning\SJTinyRenderer\SJTinyRenderer\main.cpp(268,27): warning C4244: “=”: 从“double”转换到“T”，可能丢失数据
-          with
-          [
-              T=float
-          ]
-F:\ProjectsForLearning\SJTinyRenderer\SJTinyRenderer\main.cpp(269,48): warning C4244: “=”: 从“double”转换到“T”，可能丢失数据
-          with
-          [
-              T=float
-          ]
-F:\ProjectsForLearning\SJTinyRenderer\SJTinyRenderer\main.cpp(365,17): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-F:\ProjectsForLearning\SJTinyRenderer\SJTinyRenderer\main.cpp(366,17): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-F:\ProjectsForLearning\SJTinyRenderer\SJTinyRenderer\main.cpp(370,19): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-F:\ProjectsForLearning\SJTinyRenderer\SJTinyRenderer\main.cpp(371,19): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-F:\ProjectsForLearning\SJTinyRenderer\SJTinyRenderer\main.cpp(373,13): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-F:\ProjectsForLearning\SJTinyRenderer\SJTinyRenderer\main.cpp(374,13): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-F:\ProjectsForLearning\SJTinyRenderer\SJTinyRenderer\main.cpp(383,31): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+﻿LINK : warning LNK4098: 默认库“MSVCRT”与其他库的使用冲突；请使用 /NODEFAULTLIB:library
   SJTinyRenderer.vcxproj -> F:\ProjectsForLearning\SJTinyRenderer\Debug\SJTinyRenderer.exe
